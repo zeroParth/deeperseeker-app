@@ -7,4 +7,6 @@ Here are some pieces of information you need to know about this project:
 • The components are in `./components` directory
 • Auth is setup with Clerk
 • Use `bun` instead of `npm` and `bunx` instead of `npx` for all package management and execution
-• Run the project on the iOS simulator with `bun ios` and make sure to prebuild the project first with `bun prebuild` since this is an expo-dev-client project
+• Common commands are in the scripts section of the `package.json` file
+  • To build the project fresh on the iOS simulator use `bun ios` and make sure to prebuild the project first with `bun prebuild` since this is an expo-dev-client project
+  • To start the project without building run `bun start`
