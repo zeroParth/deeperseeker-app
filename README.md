@@ -34,3 +34,8 @@ This guide will help you get started even if you're new to coding, using Cursor 
 4. **Run the Project**
    - In the terminal, type `bun ios` or ask Cursor to run the project
    - The project should open in your iOS simulator
+
+
+## Credits
+
+This project was inspired by and built upon the foundation of [ChatGPT Clone React Native](https://github.com/Galaxies-dev/chatgpt-clone-react-native) by Galaxies-dev.
