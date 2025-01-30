@@ -1,58 +1,69 @@
 import Colors from '@/constants/Colors';
 import { defaultStyles } from '@/constants/Styles';
-import { keyStorage } from '@/utils/Storage';
+import { googleKeyStorage, keyStorage } from '@/utils/Storage';
 import { useAuth } from '@clerk/clerk-expo';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Button } from 'react-native';
+import React, { useState } from 'react';
+import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useMMKVString } from 'react-native-mmkv';
-import React from 'react';
 
 const Page = () => {
-  const [key, setKey] = useMMKVString('apikey', keyStorage);
-  const [apiKey, setApiKey] = useState('');
+  const [deepseekKey, setDeepseekKey] = useMMKVString('apikey', keyStorage);
+  const [googleKey, setGoogleKey] = useMMKVString('apikey', googleKeyStorage);
+  const [deepseekApiKey, setDeepseekApiKey] = useState('');
+  const [googleApiKey, setGoogleApiKey] = useState('');
   const router = useRouter();
 
   const { signOut } = useAuth();
 
-  const saveApiKey = async () => {
-    setKey(apiKey);
+  const saveApiKeys = async () => {
+    if (deepseekApiKey) setDeepseekKey(deepseekApiKey);
+    if (googleApiKey) setGoogleKey(googleApiKey);
     router.navigate('/(auth)/(drawer)');
   };
 
-  const removeApiKey = async () => {
-    setKey('');
+  const removeApiKeys = async () => {
+    setDeepseekKey('');
+    setGoogleKey('');
   };
 
   return (
     <View style={styles.container}>
-      {key && key !== '' && (
+      {((deepseekKey && deepseekKey !== '') || (googleKey && googleKey !== '')) && (
         <>
           <Text style={styles.label}>You are all set!</Text>
-          <TouchableOpacity
-            style={[defaultStyles.btn, { backgroundColor: Colors.primary }]}
-            onPress={removeApiKey}>
-            <Text style={styles.buttonText}>Remove API Key</Text>
+          <TouchableOpacity style={[defaultStyles.btn, { backgroundColor: Colors.primary }]} onPress={removeApiKeys}>
+            <Text style={styles.buttonText}>Remove API Keys</Text>
           </TouchableOpacity>
         </>
       )}
 
-      {(!key || key === '') && (
+      {(!deepseekKey || deepseekKey === '' || !googleKey || googleKey === '') && (
         <>
-          <Text style={styles.label}>API Key & Organization:</Text>
+          <Text style={styles.label}>API Keys & Organization:</Text>
+
+          <Text style={styles.sublabel}>DeepSeek API Key:</Text>
           <TextInput
             style={styles.input}
-            value={apiKey}
-            onChangeText={setApiKey}
-            placeholder="Enter your API key"
+            value={deepseekApiKey}
+            onChangeText={setDeepseekApiKey}
+            placeholder="Enter your DeepSeek API key"
             autoCorrect={false}
             autoCapitalize="none"
           />
 
-          <TouchableOpacity
-            style={[defaultStyles.btn, { backgroundColor: Colors.primary }]}
-            onPress={saveApiKey}>
-            <Text style={styles.buttonText}>Save API Key</Text>
+          <Text style={styles.sublabel}>Google API Key:</Text>
+          <TextInput
+            style={styles.input}
+            value={googleApiKey}
+            onChangeText={setGoogleApiKey}
+            placeholder="Enter your Google API key"
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+
+          <TouchableOpacity style={[defaultStyles.btn, { backgroundColor: Colors.primary }]} onPress={saveApiKeys}>
+            <Text style={styles.buttonText}>Save API Keys</Text>
           </TouchableOpacity>
         </>
       )}
@@ -60,6 +71,7 @@ const Page = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -68,7 +80,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 18,
+    marginBottom: 20,
+    fontWeight: 'bold',
+  },
+  sublabel: {
+    fontSize: 16,
     marginBottom: 10,
+    color: Colors.grey,
   },
   input: {
     borderWidth: 1,
@@ -79,11 +97,11 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor: '#fff',
   },
-
   buttonText: {
     color: 'white',
     textAlign: 'center',
     fontSize: 16,
   },
 });
+
 export default Page;

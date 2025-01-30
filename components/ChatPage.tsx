@@ -1,24 +1,24 @@
-import HeaderDropDown from "@/components/HeaderDropDown";
-import MessageInput from "@/components/MessageInput";
-import { defaultStyles } from "@/constants/Styles";
-import { storage } from "@/utils/Storage";
-import { Redirect, Stack, useLocalSearchParams } from "expo-router";
-import { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Alert, ScrollView } from "react-native";
-import { useMMKVString } from "react-native-mmkv";
-import ChatMessage from "@/components/ChatMessage";
-import { Message, Role } from "@/utils/Interfaces";
-import MessageIdeas from "@/components/MessageIdeas";
-import { addChat, addMessage, getMessages } from "@/utils/Database";
-import { useSQLiteContext } from "expo-sqlite";
-import Colors from "@/constants/Colors";
-import { Text } from "./Themed";
-import { Ionicons } from "@expo/vector-icons";
-import { KeyboardAwareScrollView, KeyboardStickyView } from "react-native-keyboard-controller";
-import { useApi } from "./useApi";
+import ChatMessage from '@/components/ChatMessage';
+import HeaderDropDown from '@/components/HeaderDropDown';
+import MessageIdeas from '@/components/MessageIdeas';
+import MessageInput from '@/components/MessageInput';
+import Colors from '@/constants/Colors';
+import { defaultStyles } from '@/constants/Styles';
+import { addChat, addMessage, getMessages } from '@/utils/Database';
+import { Message, Role } from '@/utils/Interfaces';
+import { storage } from '@/utils/Storage';
+import { Ionicons } from '@expo/vector-icons';
+import { Redirect, Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
+import { useMMKVString } from 'react-native-mmkv';
+import { Text } from './Themed';
+import { useApi } from './useApi';
 
 const ChatPage = () => {
-  const [selectedModel, setSelectedModel] = useMMKVString("selectedModel", storage);
+  const [selectedModel, setSelectedModel] = useMMKVString('selectedModel', storage);
   const [height, setHeight] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
   const db = useSQLiteContext();
@@ -26,8 +26,9 @@ const ChatPage = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const [chatId, _setChatId] = useState(id);
   const chatIdRef = useRef(chatId);
-  const {sendMessage, key} = useApi();
-  
+  const router = useRouter();
+  const { sendMessage, deepseekKey, googleKey } = useApi();
+
   useEffect(() => {
     if (id) {
       getMessages(db, parseInt(id)).then((res) => {
@@ -35,7 +36,6 @@ const ChatPage = () => {
       });
     }
   }, [id]);
-
 
   // https://stackoverflow.com/questions/55265255/react-usestate-hook-event-handler-using-initial-state
   function setChatId(id: string) {
@@ -62,23 +62,19 @@ const ChatPage = () => {
       await addMessage(db, parseInt(chatIdRef.current), { content: text, role: Role.User });
     }
 
-    const newMessages = [
-      ...messages,
-      { role: Role.User, content: text },
-      { role: Role.Bot, content: "" },
-    ];
+    const newMessages = [...messages, { role: Role.User, content: text }, { role: Role.Bot, content: '' }];
     setMessages(newMessages);
-    
+
     try {
-      await sendMessage(newMessages, selectedModel || "deepseek-chat", (content: string, reasoningContent?: string) => {
+      await sendMessage(newMessages, selectedModel || 'deepseek-chat', (content: string, reasoningContent?: string) => {
         setMessages((messages) => {
           const lastMsg = messages[messages.length - 1];
-            if (content) {
+          if (content) {
             lastMsg.content += content;
-            }
-            if (reasoningContent) {
-            lastMsg.reasoning_content = (lastMsg.reasoning_content || "") + reasoningContent;
-            }
+          }
+          if (reasoningContent) {
+            lastMsg.reasoning_content = (lastMsg.reasoning_content || '') + reasoningContent;
+          }
           return [...messages];
         });
       });
@@ -93,16 +89,16 @@ const ChatPage = () => {
         return messages;
       });
     } catch (error) {
-      console.error("Error streaming chat:", error);
+      console.error('Error streaming chat:', error);
       if (error instanceof Error) {
-        Alert.alert("Error", `Failed to get response: ${error.message}`);
+        Alert.alert('Error', `Failed to get response: ${error.message}`);
       } else {
-        Alert.alert("Error", "Failed to get response");
+        Alert.alert('Error', 'Failed to get response');
       }
     }
   };
 
-  if (!key) {
+  if (!deepseekKey || !googleKey) {
     return <Redirect href={'/(auth)/(modal)/settings'} />;
   }
 
@@ -114,8 +110,8 @@ const ChatPage = () => {
             <HeaderDropDown
               title="Model"
               items={[
-                { key: "deepseek-chat", title: "DeepSeek Chat", icon: "bolt" },
-                { key: "deepseek-reasoner", title: "DeepSeek Reasoner", icon: "sparkles" },
+                { key: 'deepseek-chat', title: 'DeepSeek Chat', icon: 'bolt' },
+                { key: 'deepseek-reasoner', title: 'DeepSeek Reasoner', icon: 'sparkles' },
               ]}
               onSelect={onModelChange}
               selected={selectedModel}
@@ -132,16 +128,16 @@ const ChatPage = () => {
         {messages.length === 0 ? (
           <View
             style={{
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               gap: 10,
             }}
           >
             <View style={[styles.logoContainer]}>
               <Ionicons name="fish" size={30} color="#fff" />
             </View>
-            <Text style={{ fontSize: 20, fontWeight: "bold" }}>Hi, I'm DeeperSeeker.</Text>
+            <Text style={{ fontSize: 20, fontWeight: 'bold' }}>Hi, I'm DeeperSeeker.</Text>
             <Text style={{ fontSize: 16, color: Colors.greyLight }}>How can I help you today?</Text>
           </View>
         ) : (
@@ -160,22 +156,22 @@ const ChatPage = () => {
 
 const styles = StyleSheet.create({
   logoContainer: {
-    alignSelf: "center",
-    alignItems: "center",
-    justifyContent: "center",
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 50,
     height: 50,
-    backgroundColor: "#000",
+    backgroundColor: '#000',
     borderRadius: 50,
   },
   image: {
     width: 30,
     height: 30,
-    resizeMode: "cover",
+    resizeMode: 'cover',
   },
   page: {
     flex: 1,
-    position: "relative",
+    position: 'relative',
   },
   scrollContent: {
     paddingTop: 30,
@@ -183,13 +179,13 @@ const styles = StyleSheet.create({
   },
   emptyContent: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   inputContainer: {
-    position: "absolute",
+    position: 'absolute',
     bottom: 0,
     left: 0,
-    width: "100%",
+    width: '100%',
   },
 });
 export default ChatPage;

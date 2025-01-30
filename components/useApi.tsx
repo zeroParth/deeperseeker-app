@@ -1,5 +1,5 @@
 import { Message, Role } from '@/utils/Interfaces';
-import { keyStorage } from '@/utils/Storage';
+import { googleKeyStorage, keyStorage } from '@/utils/Storage';
 import { fetch } from 'expo/fetch';
 import { useMMKVString } from 'react-native-mmkv';
 
@@ -9,11 +9,13 @@ type ApiHook = {
     selectedModel: string,
     onUpdate: (content: string, reasoningContent?: string) => void,
   ) => Promise<void>;
-  key?: string;
+  deepseekKey?: string;
+  googleKey?: string;
 };
 
 export const useApi = (): ApiHook => {
-  const [key, setKey] = useMMKVString('apikey', keyStorage);
+  const [deepseekKey] = useMMKVString('apikey', keyStorage);
+  const [googleKey] = useMMKVString('apikey', googleKeyStorage);
 
   const sendMessage = async (
     messages: Message[],
@@ -34,7 +36,7 @@ export const useApi = (): ApiHook => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${key}`,
+          Authorization: `Bearer ${deepseekKey}`,
         },
         body: JSON.stringify({
           model: selectedModel === 'deepseek-reasoner' ? 'deepseek-reasoner' : 'deepseek-chat',
@@ -80,9 +82,10 @@ export const useApi = (): ApiHook => {
         }
       }
     } catch (error) {
+      console.error('Error in sendMessage:', error);
       throw error;
     }
   };
 
-  return { sendMessage, key };
+  return { sendMessage, deepseekKey, googleKey };
 };

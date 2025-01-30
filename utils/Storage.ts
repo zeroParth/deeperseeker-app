@@ -8,6 +8,10 @@ export const keyStorage = new MMKV({
   id: 'apikey',
 });
 
+export const googleKeyStorage = new MMKV({
+  id: 'googleapikey',
+});
+
 export const chatStorage = new MMKV({
   id: 'chats',
 });
